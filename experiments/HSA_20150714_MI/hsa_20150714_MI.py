@@ -10,8 +10,6 @@ from itctools.labware import Labware, PipettingLocation
 import pprint
 
 
-## Is this volume correct? I can try adding units.
-
 # The sample cell volume in microliters
 cell_volume = 202.8
 
@@ -22,15 +20,11 @@ buffer = Solvent('buffer', density=1.014 * ureg.gram / ureg.milliliter) # TODO i
 # Define compounds.
 hsa = Compound('HumanSerumAlbumin', molecular_weight=65000 * (ureg.gram / ureg.mole), purity=.95)
 naproxen_sodium = Compound('Naproxen Sodium', molecular_weight=252.24 * (ureg.gram / ureg.mole), purity=1.)
-
-
-## Aspirin can be insoluble? Are we using its salt?
-
-# These are insoluble in water without added DMSO
+# TODO : update aspirin molecular weight - MI
 aspirin = Compound('AcetylsalicylicAcid', molecular_weight=180.15742 * (ureg.gram / ureg.mole), purity=.99)
-# naproxen = Compound('Naproxen', molecular_weight=230.3 * (ureg.gram / ureg.mole), purity=.98)
 
-#Ka (association constants) TODO Add this to the compound properties? (maybe a dict with protein as key)
+# TODO : check compound Ka values once more - MI
+# Ka (association constants) TODO Add this to the compound properties? (maybe a dict with protein as key)
 aspirin_ka = 547198.10 / ureg.molar  # http://omicsonline.org/2157-7544/2157-7544-2-107.pdf first site estimate
 naproxen_ka = 1.7 / (10 * ureg.micromolar)  # http://pubs.acs.org/doi/pdf/10.1021/jp062734p
 
@@ -42,29 +36,17 @@ buffer_trough = Labware(RackLabel='Buffer', RackType='Trough 100ml')
 source_plate = Labware(RackLabel='SourcePlate', RackType='5x3 Vial Holder')
 
 # Define source solutions in the vial holder
-# TODO : Define solutions once prepared with the Quantos
-# hsa_solution = SimpleSolution(compound=hsa, compound_mass=13.8 * ureg.milligram, solvent=buffer, solvent_mass=0.5 * ureg.gram, location=PipettingLocation(
-#     source_plate.RackLabel,
-#     source_plate.RackType,
-#     1))
-
-## what is compound mass?
-## I updated compound mass and solvent mass values based on Bas's Dec 17, 2015 experiment. (hsa_short.py)
+#TODO : Define solutions once prepared with the Quantos. Enter compound mass and solvent mass values. - MI
 
 hsa_solution = SimpleSolution(compound=hsa, compound_mass=10.05014 * ureg.milligram, solvent=buffer, solvent_mass=3.4245 * ureg.gram, location=PipettingLocation(
     source_plate.RackLabel,
     source_plate.RackType,
     1))
 
-
-## TODO : Enter compound mass and solvent mass values.
-## I put 1's as place holders.
-
-aspirin_solution = SimpleSolution(compound=aspirin, compound_mass= 1 * ureg.milligram, solvent=buffer, solvent_mass= 1 * ureg.gram, location=PipettingLocation(
+aspirin_solution = SimpleSolution(compound=aspirin, compound_mass= 20 * ureg.milligram, solvent=buffer, solvent_mass= 10 * ureg.gram, location=PipettingLocation(
     source_plate.RackLabel,
     source_plate.RackType,
-    2
-))
+    2))
 
 naproxen_sodium_solution = SimpleSolution(compound=naproxen_sodium, compound_mass=25.245 * ureg.milligram, solvent=buffer, solvent_mass=10.0728 * ureg.gram, location=PipettingLocation(
     source_plate.RackLabel,
@@ -85,43 +67,44 @@ drug_kas = [aspirin_ka, naproxen_ka]
 
 control_protocol = ITCProtocol(
     'control_protocol',
-    sample_prep_method='Plates Quick.setup',
-    itc_method='ChoderaWaterWater.inj',
+    sample_prep_method='Chodera Load Cell Without Cleaning Cell After.setup',
+    itc_method='ChoderaWaterWater5.inj',
     analysis_method='Control',
     experimental_conditions=dict(target_temperature=25, equilibration_time=60, stir_rate=1000, reference_power=5),
     injections=[
-        dict(volume_inj=0.2, duration_inj=0.4, spacing=60, filter_period=0.5)] +
-        20 * [dict(volume_inj=1.5, duration_inj=6, spacing=120, filter_period=0.5)],
+        dict(volume_inj=0.1, duration_inj=0.4, spacing=60, filter_period=0.5)] +
+        5 * [dict(volume_inj=1.5, duration_inj=6, spacing=120, filter_period=0.5)],
     )
 
-# Protocol for 1:1 binding analysis
+
 blank_protocol = ITCProtocol(
     '1:1 binding protocol',
     sample_prep_method='Chodera Load Cell Without Cleaning Cell After.setup',
     itc_method='ChoderaHSA20.inj',
-    analysis_method='Onesite',
+    analysis_method='Onesite',  # Protocol for 1:1 binding analysis
     experimental_conditions=dict(target_temperature=25, equilibration_time=300, stir_rate=1000, reference_power=5),
     injections=[
-        dict(volume_inj=0.2, duration_inj=0.4, spacing=60, filter_period=0.5)] +
+        dict(volume_inj=0.1, duration_inj=0.4, spacing=60, filter_period=0.5)] +
         20 * [dict(volume_inj=1.5, duration_inj=6, spacing=120, filter_period=0.5)],
     )
 
 
 binding_protocol = ITCProtocol(
     '1:1 binding protocol',
-    sample_prep_method='Plates Standart.setup',
+    sample_prep_method='Plates Standard.setup', # includes cleaning in the end
     itc_method='ChoderaHSA20.inj',
     analysis_method='Onesite',
     experimental_conditions=dict(target_temperature=25, equilibration_time=300, stir_rate=1000, reference_power=5),
     injections=[
-        dict(volume_inj=0.2, duration_inj=0.4, spacing=60, filter_period=0.5)] +
+        dict(volume_inj=0.1, duration_inj=0.4, spacing=60, filter_period=0.5)] +
         20 * [dict(volume_inj=1.5, duration_inj=6, spacing=120, filter_period=0.5)],
     )
-# Protocol for cleaning protocol
+
+
 cleaning_protocol = ITCProtocol(
     'cleaning protocol',
     sample_prep_method='Plates Clean.setup',
-    itc_method='ChoderaLHSA20.inj',
+    itc_method='ChoderaLHSA20.inj',          ## Is this correct or do we need ChoderaWaterWater5.inj here?
     analysis_method='Onesite',
     experimental_conditions=dict(target_temperature=25, equilibration_time=60, stir_rate=1000, reference_power=5),
     injections=5 * [
@@ -144,9 +127,8 @@ itc_experiment_set.addDestinationPlate(
 
 nreplicates = 1  # number of replicates of each experiment
 
-## Cleaning experiment, buffer control titration and buffer into hsa was missing in Bas's experiment. Do we want to keep it?
 
-# # Add cleaning experiment.
+# #  Initial cleaning is skipped.
 # name = 'initial cleaning water titration'
 # itc_experiment_set.addExperiment(
 #     ITCExperiment(
@@ -167,17 +149,19 @@ for replicate in range(1):
             protocol=control_protocol,
             cell_volume=cell_volume))
 
-# # Add buffer control titrations.
-# for replicate in range(1):
-#     name = 'buffer into buffer %d' % (replicate + 1)
-#     itc_experiment_set.addExperiment(
-#         ITCExperiment(
-#             name=name,
-#             syringe_source=buffer_trough,
-#             cell_source=buffer_trough,
-#             protocol=control_protocol,
-#             cell_volume=cell_volume))
-#
+# Add buffer control titrations.
+for replicate in range(1):
+    name = 'buffer into buffer %d' % (replicate + 1)
+    itc_experiment_set.addExperiment(
+        ITCExperiment(
+            name=name,
+            syringe_source=buffer_trough,
+            cell_source=buffer_trough,
+            protocol=blank_protocol,
+            cell_volume=cell_volume))
+
+## We didn't include this buffer into HSA titration in our experiment design, Is it necessary?
+
 # # buffer into hsa
 # for replicate in range(1):
 #     name = 'buffer into HSA %d' % (replicate + 1)
@@ -186,8 +170,8 @@ for replicate in range(1):
 #             name=name,
 #             syringe_source=buffer_trough,
 #             cell_source=hsa_solution,
-#             protocol=control_protocol,
-#             cell_concentration=0.045 * ureg.millimolar,
+#             protocol=blank_protocol,
+#             cell_concentration=0.040 * ureg.millimolar,
 #             buffer_source=buffer_trough,
 #             cell_volume=cell_volume))
 
@@ -203,6 +187,7 @@ for drug, drug_solution, drug_ka in zip(drugs, drug_solutions, drug_kas):
 
     # Scaling factors per replicate
     factors = list()
+
 
     # Define drug to protein experiments.
     for replicate in range(1):
@@ -220,13 +205,16 @@ for drug, drug_solution, drug_ka in zip(drugs, drug_solutions, drug_kas):
         # optimize the syringe_concentration using heuristic equations and known binding constants
         # TODO extract m, v and V0 from protocol somehow?
 
+        ## I am not sure what this part is doing?
+
         # Warning, you're possibly not getting the setup you want. Consider not using the Heuristic Experiment
         experiment.heuristic_syringe(drug_ka, 10, strict=False)
         # rescale if syringe > stock. Store factor.
         factors.append(experiment.rescale())
         drug_protein_experiments.append(experiment)
 
-    # Define drug into buffer
+
+    # Define drug into buffer experiments.
     for replicate in range(1):
         name = '%s into buffer  %d' % (drug.name, replicate + 1)
         experiment = ITCHeuristicExperiment(
@@ -240,7 +228,10 @@ for drug, drug_solution, drug_ka in zip(drugs, drug_solutions, drug_kas):
         experiment.rescale(tfactor=factors[replicate])
         drug_buffer_experiments.append(experiment)
 
+
+
     # TODO, since we are changing drugs, we'd have to wash the syringe.
+
     # Add drug to protein experiment(s) to set
     for drug_protein_experiment in drug_protein_experiments:
         itc_experiment_set.addExperiment(drug_protein_experiment)
@@ -252,15 +243,19 @@ for drug, drug_solution, drug_ka in zip(drugs, drug_solutions, drug_kas):
         # pprint.pprint(drug_buffer_experiment.__dict__)
 
 
-# Add cleaning experiment.
+# Add final cleaning experiment.
 name = 'final cleaning water titration'
-itc_experiment_set.addExperiment( ITCExperiment(name=name, syringe_source=water_trough, cell_source=water_trough, protocol=cleaning_protocol, cell_volume=cell_volume) )
+itc_experiment_set.addExperiment(
+    ITCExperiment(
+        name=name,
+        syringe_source=water_trough,
+        cell_source=water_trough,
+        protocol=cleaning_protocol,
+        cell_volume=cell_volume))
 
 
-## Do we want this final water into water experiment? Bas didn't have this?
-
-# Water control titrations.
-nfinal = 2
+# Add water control titrations.
+nfinal = 1
 for replicate in range(nfinal):
     name = 'final water into water test %d' % (replicate + 1)
     itc_experiment_set.addExperiment(
