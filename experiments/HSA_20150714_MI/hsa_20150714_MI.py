@@ -25,8 +25,8 @@ aspirin = Compound('AcetylsalicylicAcid', molecular_weight=180.15742 * (ureg.gra
 
 # TODO : check compound Ka values once more - MI
 # Ka (association constants) TODO Add this to the compound properties? (maybe a dict with protein as key)
-aspirin_ka = 547198.10 / ureg.molar  # http://omicsonline.org/2157-7544/2157-7544-2-107.pdf first site estimate
-naproxen_ka = 1.7 / (10 * ureg.micromolar)  # http://pubs.acs.org/doi/pdf/10.1021/jp062734p
+aspirin_ka = 2.76 / ureg.micromolar  # http://omicsonline.org/2157-7544/2157-7544-2-107.pdf (first site estimate at 298K)
+naproxen_ka = 17.3 / ( ureg.micromolar)  # http://pubs.acs.org/doi/pdf/10.1021/jp062734p with (BSA, with 200 uM NaCl)
 
 # Define troughs on the instrument
 water_trough = Labware(RackLabel='Water', RackType='Trough 100ml')
@@ -232,15 +232,17 @@ for drug, drug_solution, drug_ka in zip(drugs, drug_solutions, drug_kas):
 
     # TODO, since we are changing drugs, we'd have to wash the syringe.
 
-    # Add drug to protein experiment(s) to set
-    for drug_protein_experiment in drug_protein_experiments:
-        itc_experiment_set.addExperiment(drug_protein_experiment)
-        # pprint.pprint(drug_protein_experiment.__dict__)
+    #This part determines the order of experiments
 
     # Add drug_to_buffer experiment(s) to set
     for drug_buffer_experiment in drug_buffer_experiments:
         itc_experiment_set.addExperiment(drug_buffer_experiment)
         # pprint.pprint(drug_buffer_experiment.__dict__)
+
+    # Add drug to protein experiment(s) to set
+    for drug_protein_experiment in drug_protein_experiments:
+        itc_experiment_set.addExperiment(drug_protein_experiment)
+        # pprint.pprint(drug_protein_experiment.__dict__)
 
 
 # Add final cleaning experiment.
