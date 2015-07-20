@@ -23,10 +23,10 @@ naproxen_sodium = Compound('Naproxen Sodium', molecular_weight=252.24 * (ureg.gr
 # TODO : update aspirin molecular weight - MI
 aspirin = Compound('AcetylsalicylicAcid', molecular_weight=180.15742 * (ureg.gram / ureg.mole), purity=.99)
 
-# TODO : check compound Ka values once more - MI
+
 # Ka (association constants) TODO Add this to the compound properties? (maybe a dict with protein as key)
 aspirin_ka = 2.76 / ureg.micromolar  # http://omicsonline.org/2157-7544/2157-7544-2-107.pdf (first site estimate at 298K)
-naproxen_ka = 17.3 / ( ureg.micromolar)  # http://pubs.acs.org/doi/pdf/10.1021/jp062734p with (BSA, with 200 uM NaCl)
+naproxen_ka = 1.73e7 / ( ureg.molar)  # http://pubs.acs.org/doi/pdf/10.1021/jp062734p with (BSA, with 200 uM NaCl)
 
 # Define troughs on the instrument
 water_trough = Labware(RackLabel='Water', RackType='Trough 100ml')
@@ -37,18 +37,18 @@ source_plate = Labware(RackLabel='SourcePlate', RackType='5x3 Vial Holder')
 
 # Define source solutions in the vial holder
 #TODO : Define solutions once prepared with the Quantos. Enter compound mass and solvent mass values. - MI
-
-hsa_solution = SimpleSolution(compound=hsa, compound_mass=10.05014 * ureg.milligram, solvent=buffer, solvent_mass=3.4245 * ureg.gram, location=PipettingLocation(
+#I entered compound mass and solvent mass that matches  40 uM
+hsa_solution = SimpleSolution(compound=hsa, compound_mass=9.40 * ureg.milligram, solvent=buffer, solvent_mass=3.4245 * ureg.gram, location=PipettingLocation(
     source_plate.RackLabel,
     source_plate.RackType,
     1))
 
-aspirin_solution = SimpleSolution(compound=aspirin, compound_mass= 20 * ureg.milligram, solvent=buffer, solvent_mass= 10 * ureg.gram, location=PipettingLocation(
+aspirin_solution = SimpleSolution(compound=aspirin, compound_mass= 20.235 * ureg.milligram, solvent=buffer, solvent_mass= 10.0973 * ureg.gram, location=PipettingLocation(
     source_plate.RackLabel,
     source_plate.RackType,
     2))
 
-naproxen_sodium_solution = SimpleSolution(compound=naproxen_sodium, compound_mass=25.245 * ureg.milligram, solvent=buffer, solvent_mass=10.0728 * ureg.gram, location=PipettingLocation(
+naproxen_sodium_solution = SimpleSolution(compound=naproxen_sodium, compound_mass=25.275 * ureg.milligram, solvent=buffer, solvent_mass=10.0845 * ureg.gram, location=PipettingLocation(
     source_plate.RackLabel,
     source_plate.RackType,
     3))
@@ -104,7 +104,7 @@ binding_protocol = ITCProtocol(
 cleaning_protocol = ITCProtocol(
     'cleaning protocol',
     sample_prep_method='Plates Clean.setup',
-    itc_method='ChoderaLHSA20.inj',          ## Is this correct or do we need ChoderaWaterWater5.inj here?
+    itc_method='ChoderaWaterWater5.inj',
     analysis_method='Onesite',
     experimental_conditions=dict(target_temperature=25, equilibration_time=60, stir_rate=1000, reference_power=5),
     injections=5 * [
@@ -160,20 +160,7 @@ for replicate in range(1):
             protocol=blank_protocol,
             cell_volume=cell_volume))
 
-## We didn't include this buffer into HSA titration in our experiment design, Is it necessary?
 
-# # buffer into hsa
-# for replicate in range(1):
-#     name = 'buffer into HSA %d' % (replicate + 1)
-#     itc_experiment_set.addExperiment(
-#         ITCExperiment(
-#             name=name,
-#             syringe_source=buffer_trough,
-#             cell_source=hsa_solution,
-#             protocol=blank_protocol,
-#             cell_concentration=0.040 * ureg.millimolar,
-#             buffer_source=buffer_trough,
-#             cell_volume=cell_volume))
 
 # drugs/HSA
 # scale cell concentration to fix necessary syringe concentrations
@@ -243,6 +230,20 @@ for drug, drug_solution, drug_ka in zip(drugs, drug_solutions, drug_kas):
     for drug_protein_experiment in drug_protein_experiments:
         itc_experiment_set.addExperiment(drug_protein_experiment)
         # pprint.pprint(drug_protein_experiment.__dict__)
+
+
+# buffer into hsa
+for replicate in range(1):
+    name = 'buffer into HSA %d' % (replicate + 1)
+    itc_experiment_set.addExperiment(
+        ITCExperiment(
+            name=name,
+            syringe_source=buffer_trough,
+            cell_source=hsa_solution,
+            protocol=blank_protocol,
+            cell_concentration=0.040 * ureg.millimolar,
+            buffer_source=buffer_trough,
+            cell_volume=cell_volume))
 
 
 # Add final cleaning experiment.
